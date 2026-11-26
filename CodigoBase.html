@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de LED con Arduino</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2f7;
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    .contenedor {
+      background: white;
+      max-width: 400px;
+      margin: auto;
+      padding: 35px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #263445;
+    }
+
+    button {
+      width: 180px;
+      padding: 15px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    .encender {
+      background: #16a34a;
+    }
+
+    .apagar {
+      background: #dc2626;
+    }
+
+    #estado {
+      margin-top: 25px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="contenedor">
+    <h1>Control de LED</h1>
+    <p>Controla tu LED Arduino desde Internet</p>
+
+    <button class="encender" onclick="cambiarLED(true)">
+      ENCENDER
+    </button>
+
+    <button class="apagar" onclick="cambiarLED(false)">
+      APAGAR
+    </button>
+
+    <p id="estado">Conectando con Firebase...</p>
+  </div>
+
+  <script type="module">
+
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+
+    import {
+      getDatabase,
+      ref,
+      set,
+      onValue
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+    // CONFIGURACIÓN DE FIREBASE
+    const firebaseConfig = {
+      databaseURL: "https://practica-726eb-default-rtdb.firebaseio.com"
+    };
+
+    // CONECTAR CON FIREBASE
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    const ledRef = ref(database, "led");
+
+    // CAMBIAR ESTADO DEL LED
+    window.cambiarLED = async function(encendido) {
+      try {
+        await set(ledRef, encendido);
+
+        document.getElementById("estado").textContent =
+          encendido ? "LED encendido" : "LED apagado";
+
+      } catch (error) {
+        document.getElementById("estado").textContent =
+          "Error al conectar con Firebase";
+
+        console.error(error);
+      }
+    };
+
+    // LEER ESTADO DE FIREBASE
+    onValue(ledRef, (snapshot) => {
+      const estado = snapshot.val();
+
+      document.getElementById("estado").textContent =
+        estado === true ? "LED encendido" :
+        estado === false ? "LED apagado" :
+        "Estado no disponible";
+    });
+
+  </script>
+
+</body>
+</html>
